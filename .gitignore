@@ -3,3 +3,5 @@ SDL2.dll
 Makefile
 SDL2/
 app.exe
+dev.txt
+.vscode/
