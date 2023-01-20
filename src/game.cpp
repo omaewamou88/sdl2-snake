@@ -1,16 +1,25 @@
 #include <game.h>
-#define FPS 30
+#define INPUT_REFRESH 30
+#define RENDER_REFRESH 10
+#define WIDTH 720
+#define HEIGHT 720
+#define ROWS 20
+#define COLUMNS 20
+#define COLUMN_WIDTH WIDTH/COLUMNS
+#define ROW_HEIGHT HEIGHT/ROWS
 
-Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
+Game::Game(const char* title, int x, int y, Uint32 flags)
 {
     if(SDL_Init(SDL_INIT_EVERYTHING)!=0) std::cout << "ERROR: COULDN'T INIT SDL2\n";
-    window = SDL_CreateWindow(title, x, y, w, h, flags);
+    window = SDL_CreateWindow(title, x, y, WIDTH, HEIGHT, flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     direction = dir::no;
-    square.w = square.h = snack.w = snack.h = 25;
+    square.w = snack.w = COLUMN_WIDTH;
+    square.h = snack.h = ROW_HEIGHT;
     snake.push_back({0, 0});
     srand((unsigned)time(NULL));
-    snack.x = 25*(rand()%19+1); snack.y = 25*(rand()%19+1);
+    snack.x = COLUMN_WIDTH*(rand()%(COLUMNS-1)+1); snack.y = ROW_HEIGHT*(rand()%(ROWS-1)+1);
+    s = true;
 }
 
 void Game::run()
@@ -23,26 +32,32 @@ void Game::run()
     {
         timeValue = SDL_GetTicks();
         input();
-        acc++; if(acc==3)
+        acc++; if(acc==INPUT_REFRESH/RENDER_REFRESH)
         {
         update();
         render();
         acc = 0;
         }
         deltaTime = SDL_GetTicks() - timeValue;
-        if(deltaTime<1000/FPS) SDL_Delay(1000/FPS-deltaTime);
+        if(deltaTime<1000/INPUT_REFRESH) SDL_Delay(1000/INPUT_REFRESH-deltaTime);
     }
-    std::cout << "Your score is: " << snake.size()-1 << "\n";
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    SDL_Quit();
+    std::cout << "Your score is: " << snake.size()-1 << "\n";
 }
 
 void Game::update() 
 {
-    if(snake[0].x<0||snake[0].x>=500||snake[0].y<0||snake[0].y>=500) isRunning = false;
+    if(snake[0].x<0||snake[0].x>=WIDTH||snake[0].y<0||snake[0].y>=HEIGHT) isRunning = false;
     else if(snake[0].x==snack.x&&snake[0].y==snack.y)
     {
         snake.push_back({0, 0});
-        snack.x = 25*(rand()%19+1); snack.y = 25*(rand()%19+1);
+        do{
+        snack.x = COLUMN_WIDTH*(rand()%(COLUMNS-1)+1); snack.y = ROW_HEIGHT*(rand()%(ROWS-1)+1);
+        for(int i = 0; i < snake.size(); i++) if(snack.x==snake[i].x&&snack.y==snake[i].y) s = false;
+        }while(!s);
+        s = true;
     }
     for(int i = snake.size(); i>0 ; i--)
     {
@@ -52,10 +67,10 @@ void Game::update()
     switch(direction)
     {
         case no: break;
-        case left: snake[0].x-=25; break;
-        case right: snake[0].x+=25; break;
-        case up: snake[0].y-=25; break;
-        case down: snake[0].y+=25; break;
+        case left: snake[0].x-=COLUMN_WIDTH; break;
+        case right: snake[0].x+=COLUMN_WIDTH; break;
+        case up: snake[0].y-=ROW_HEIGHT; break;
+        case down: snake[0].y+=ROW_HEIGHT; break;
         default: std::cout << "ERROR: ENUM ERROR 1\n";
     }
     for(int i = 1; i<snake.size(); i++) if(snake[0].x==snake[i].x&&snake[0].y==snake[i].y) isRunning = false;
