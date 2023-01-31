@@ -19,7 +19,6 @@ Game::Game(const char* title, int x, int y, Uint32 flags)
     snake.push_back({0, 0});
     srand((unsigned)time(NULL));
     snack.x = COLUMN_WIDTH*(rand()%(COLUMNS-1)+1); snack.y = ROW_HEIGHT*(rand()%(ROWS-1)+1);
-    s = true;
 }
 
 void Game::run()
@@ -53,11 +52,15 @@ void Game::update()
     else if(snake[0].x==snack.x&&snake[0].y==snack.y)
     {
         snake.push_back({0, 0});
-        do{
         snack.x = COLUMN_WIDTH*(rand()%(COLUMNS-1)+1); snack.y = ROW_HEIGHT*(rand()%(ROWS-1)+1);
-        for(int i = 0; i < snake.size(); i++) if(snack.x==snake[i].x&&snack.y==snake[i].y) s = false;
-        }while(!s);
-        s = true;
+        for(int i=0;i<snake.size();i++)
+        {
+            if(snake[i].x==snack.x&&snake[i].y==snack.y)
+            {
+                snack.x = COLUMN_WIDTH*(rand()%(COLUMNS-1)+1); snack.y = ROW_HEIGHT*(rand()%(ROWS-1)+1);
+                i = 0;
+            }
+        }
     }
     for(int i = snake.size(); i>0 ; i--)
     {

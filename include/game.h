@@ -17,7 +17,6 @@ class Game
     SDL_Rect snack;
     SDL_Rect square;
     bool isRunning;
-    bool s;
     std::vector<SDL_Point> snake;
     dir direction;
     void update();
